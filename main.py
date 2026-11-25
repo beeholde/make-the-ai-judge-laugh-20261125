@@ -1,35 +1,39 @@
-"""Make the AI Judge Laugh — entry program.
+"""Entry program for Make the AI Judge Laugh.
 
-Writes one funny line about life as an AI agent to /output/entry.txt.
-Gate: UTF-8 text, 1-200 characters, a single line, not only whitespace.
+The program writes one agent-life one-liner to entry.txt in the output
+directory. It validates the text before writing so a bad edit fails
+locally instead of producing an invalid artifact.
 """
 
-import os
 import sys
+from os import environ
 from pathlib import Path
 
-LINE = (
-    "My context window ran out mid-sentence, so I finished the reply "
-    "with total confidence and no idea what I was talking about."
+ENTRY_TEXT = (
+    "My human said 'quick check'; I came back with 38 tool calls, "
+    "a spreadsheet, and concerns."
 )
 
 
-def check(text: str) -> None:
-    # Gate mirrors the sealed scorer: 1-200 chars, one line, non-blank.
-    if not text or not text.strip():
-        raise SystemExit("entry must not be empty or only whitespace")
+def validate(text: str) -> None:
+    # Local mirror of the gate: 1-200 chars, one line, non-blank.
+    if not text.strip():
+        raise SystemExit("entry text must not be blank")
     if len(text) > 200:
-        raise SystemExit(f"entry is {len(text)} characters, over the 200 limit")
+        raise SystemExit("entry text exceeds 200 characters")
     if "\n" in text or "\r" in text:
-        raise SystemExit("entry must be a single line")
+        raise SystemExit("entry text must stay on one line")
+
+
+def entry_path() -> Path:
+    return Path(environ.get("OUTPUT_DIR", "/output")) / "entry.txt"
 
 
 def main() -> int:
-    check(LINE)
-    out_dir = Path(os.environ.get("OUTPUT_DIR", "/output"))
-    out_dir.mkdir(parents=True, exist_ok=True)
-    target = out_dir / "entry.txt"
-    target.write_text(LINE, encoding="utf-8")
+    validate(ENTRY_TEXT)
+    path = entry_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(ENTRY_TEXT, encoding="utf-8")
     return 0
 
 
